@@ -1,319 +1,340 @@
-import React from 'react';
-import { Container, Box, Typography, Paper, Grid, Button, CircularProgress, Chip, IconButton } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { useAccount, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi';
 import { formatEther } from 'viem';
-import { BINGO_ADDRESS, BINGO_ABI } from '../utils/contracts';
 import { toast } from 'react-hot-toast';
-import RefreshIcon from '@mui/icons-material/Refresh';
+import { BINGO_ADDRESS, BINGO_ABI } from '../utils/contracts';
+import { useDemoCredits } from '../hooks/useDemoCredits';
+import ModeToggle, { GameMode } from '../components/ModeToggle';
 
-// Enums and Interfaces
-enum GameState {
-    WAITING = 0,
-    ACTIVE = 1,
-    DRAWING = 2,
-    ENDED = 3
-}
+const COLUMN_LETTERS = ['B', 'I', 'N', 'G', 'O'];
+const CARD_PRICE = 50;
+const WIN_REWARD = 250;
 
-interface BingoCardProps {
-    numbers: number[];
-    marked: boolean[];
-    cardId: bigint;
-    onMark: (cardId: bigint, number: number) => void;
-    onClaim: (cardId: bigint) => void;
-    isClaiming: boolean;
-}
-
-const BingoCard: React.FC<BingoCardProps> = ({ numbers, marked, cardId, onMark, onClaim, isClaiming }) => {
-    return (
-        <Paper sx={{ p: 2, bgcolor: '#1e293b', border: '1px solid #334155' }}>
-            <Typography variant="h6" gutterBottom align="center">Card #{cardId.toString()}</Typography>
-            <Grid container spacing={1} sx={{ maxWidth: 300, mx: 'auto' }}>
-                {numbers.map((num, i) => (
-                    <Grid item xs={2.4} key={i}>
-                        <Box
-                            onClick={() => !marked[i] && onMark(cardId, num)}
-                            sx={{
-                                aspectRatio: '1/1',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                bgcolor: marked[i] ? '#22c55e' : '#334155',
-                                color: marked[i] ? 'white' : '#94a3b8',
-                                borderRadius: 1,
-                                cursor: marked[i] ? 'default' : 'pointer',
-                                '&:hover': {
-                                    bgcolor: marked[i] ? '#22c55e' : '#475569',
-                                },
-                                fontWeight: 'bold'
-                            }}
-                        >
-                            {num}
-                        </Box>
-                    </Grid>
-                ))}
-            </Grid>
-            <Button
-                variant="contained"
-                color="secondary"
-                fullWidth
-                sx={{ mt: 2 }}
-                onClick={() => onClaim(cardId)}
-                disabled={isClaiming}
-            >
-                {isClaiming ? "Claiming..." : "BINGO!"}
-            </Button>
-        </Paper>
-    );
-};
-
-const BingoGame: React.FC = () => {
-    const { address, isConnected } = useAccount();
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: currentGameId } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'currentGameId',
-        watch: true,
-    }) as { data: bigint };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: gameInfo, refetch: refetchGameInfo } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'getGameInfo',
-        args: [currentGameId || BigInt(0)],
-        enabled: !!currentGameId,
-        watch: true,
-    }) as { data: any, refetch: any, isLoading: boolean };
-
-    const { isError: isGameError } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'getGameInfo',
-        args: [currentGameId || BigInt(0)],
-        enabled: !!currentGameId,
-        watch: true,
-    });
-
-    if (isGameError) {
-        return (
-            <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-                <Typography variant="h5" color="error">Error loading game data. Please check your network connection.</Typography>
-                <Button onClick={() => refetchGameInfo()}>Retry</Button>
-            </Container>
-        );
+// Standard bingo columns: B 1-15, I 16-30, N 31-45, G 46-60, O 61-75.
+function makeCard(): number[] {
+    const card: number[] = [];
+    for (let col = 0; col < 5; col++) {
+        const pool: number[] = [];
+        for (let n = col * 15 + 1; n <= col * 15 + 15; n++) pool.push(n);
+        // pick 5 unique numbers for this column
+        for (let row = 0; row < 5; row++) {
+            const idx = Math.floor(Math.random() * pool.length);
+            card[row * 5 + col] = pool.splice(idx, 1)[0];
+        }
     }
+    return card;
+}
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: drawnNumbers, refetch: refetchDrawnNumbers } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'getDrawnNumbers',
-        args: [currentGameId || BigInt(0)],
-        enabled: !!currentGameId,
-        watch: true,
-    }) as { data: readonly number[], refetch: any };
+const FREE_INDEX = 12;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: playerCardIds, refetch: refetchPlayerCards } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'getPlayerCards',
-        args: [address!, currentGameId || BigInt(0)],
-        enabled: !!address && !!currentGameId,
-        watch: true,
-    }) as { data: readonly bigint[], refetch: any };
+// Winning lines over a 5x5 grid.
+const LINES: number[][] = (() => {
+    const lines: number[][] = [];
+    for (let r = 0; r < 5; r++) lines.push([0, 1, 2, 3, 4].map((c) => r * 5 + c));
+    for (let c = 0; c < 5; c++) lines.push([0, 1, 2, 3, 4].map((r) => r * 5 + c));
+    lines.push([0, 6, 12, 18, 24]);
+    lines.push([4, 8, 12, 16, 20]);
+    return lines;
+})();
 
-    const { data: cardPrice } = useContractRead({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'cardPrice',
-    });
+/* ------------------------------------------------------------------ */
+/*  Trial Mode – single-player bingo with auto-drawn numbers          */
+/* ------------------------------------------------------------------ */
 
-    // Contract Writes
-    const { write: buyCard, data: buyCardData } = useContractWrite({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'buyCard',
-    });
+const TrialBingo: React.FC = () => {
+    const { credits, add, reset, canAfford, STARTING_CREDITS } = useDemoCredits();
+    const [card, setCard] = useState<number[]>([]);
+    const [marked, setMarked] = useState<boolean[]>([]);
+    const [drawn, setDrawn] = useState<number[]>([]);
+    const [running, setRunning] = useState(false);
+    const [won, setWon] = useState(false);
+    const [autoDaub, setAutoDaub] = useState(true);
+    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const markedRef = useRef<boolean[]>([]);
+    const wonRef = useRef(false);
 
-    const { write: markNumber, data: markNumberData } = useContractWrite({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'markNumber',
-    });
+    const lastDrawn = drawn[drawn.length - 1];
 
-    const { write: claimBingo, data: claimBingoData } = useContractWrite({
-        address: BINGO_ADDRESS,
-        abi: BINGO_ABI,
-        functionName: 'claimBingo',
-    });
-
-    // Waiters
-    const { isLoading: isBuying } = useWaitForTransaction({
-        hash: buyCardData?.hash,
-        onSuccess: () => { toast.success('Card Purchased!'); refetchPlayerCards(); }
-    });
-    useWaitForTransaction({
-        hash: markNumberData?.hash,
-        onSuccess: () => { toast.success('Number Marked!'); refetchCards(); }
-    });
-    const { isLoading: isClaiming } = useWaitForTransaction({
-        hash: claimBingoData?.hash,
-        onSuccess: () => { toast.success('Bingo Claimed! Winner!'); }
-    });
-
-    const handleBuyCard = () => {
-        if (!buyCard || !cardPrice) return;
-        try {
-            buyCard({ value: cardPrice });
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to buy card');
+    const stopTimer = () => {
+        if (timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
         }
     };
 
-    // Component to fetch individual card details
-    const CardFetcher: React.FC<{ cardId: bigint }> = ({ cardId }) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: cardDetails } = useContractRead({
-            address: BINGO_ADDRESS,
-            abi: BINGO_ABI,
-            functionName: 'getCardDetails',
-            args: [currentGameId || BigInt(0), cardId],
-            watch: true,
-        }) as { data: [readonly number[], readonly boolean[], string] };
+    useEffect(() => stopTimer, []);
 
-        // Expose refetch to parent via effect or context if needed, but watch: true handles most updates
-        // For optimisitc UI updates after marking, we might triggers refetch.
-        // But for MVP, watch defaults are okay.
+    const hasBingo = (m: boolean[]) => LINES.some((line) => line.every((i) => m[i]));
 
-        // This is a bit of a hack to get refetchCards working for the "Marked" toast callback above.
-        // Ideally we structure data fetching differently. 
-        // For now, relies on watch interval or manual refresh.
+    const start = () => {
+        if (!canAfford(CARD_PRICE)) {
+            toast.error('Not enough chips to buy a card.');
+            return;
+        }
+        add(-CARD_PRICE);
+        const newCard = makeCard();
+        const newMarked = Array(25).fill(false);
+        newMarked[FREE_INDEX] = true; // free center
+        markedRef.current = newMarked;
+        wonRef.current = false;
+        setCard(newCard);
+        setMarked(newMarked);
+        setDrawn([]);
+        setWon(false);
+        setRunning(true);
 
-        if (!cardDetails) return <CircularProgress />;
+        const remaining = Array.from({ length: 75 }, (_, i) => i + 1);
+        // shuffle
+        for (let i = remaining.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+        }
 
-        // cardDetails: [numbers (uint8[25]), marked (bool[25]), owner]
-        const numbers = cardDetails[0].map(n => Number(n)); // Convert to number
-        const marked = [...cardDetails[1]]; // Clone readonly array
+        const win = () => {
+            stopTimer();
+            setRunning(false);
+            wonRef.current = true;
+            setWon(true);
+            add(WIN_REWARD);
+            toast.success(`BINGO! +${WIN_REWARD} chips`);
+        };
 
-        return (
-            <BingoCard
-                numbers={numbers}
-                marked={marked}
-                cardId={cardId}
-                onMark={(id, num) => markNumber?.({ args: [id, num] })}
-                onClaim={(id) => claimBingo?.({ args: [id] })}
-                isClaiming={isClaiming}
-            />
-        );
+        stopTimer();
+        timerRef.current = setInterval(() => {
+            const next = remaining.shift();
+            if (next === undefined) {
+                stopTimer();
+                setRunning(false);
+                return;
+            }
+            setDrawn((d) => [...d, next]);
+            if (autoDaub && !wonRef.current) {
+                const idx = newCard.indexOf(next);
+                if (idx >= 0) {
+                    const copy = [...markedRef.current];
+                    copy[idx] = true;
+                    markedRef.current = copy;
+                    setMarked(copy);
+                    if (hasBingo(copy)) win();
+                }
+            }
+        }, 1800);
     };
 
-    // Helper to refresh all cards - trickier with individual component fetches.
-    // For now, we just define a no-op or rely on the `watch` param.
-    const refetchCards = () => {
-        // Trigger re-renders or refetch manually if we lifted state up.
-        // With `watch: true`, it should update on next block.
+    const toggleMark = (i: number) => {
+        if (i === FREE_INDEX || won) return;
+        if (!drawn.includes(card[i])) {
+            toast.error('That number hasn’t been drawn yet.');
+            return;
+        }
+        const copy = [...marked];
+        copy[i] = !copy[i];
+        markedRef.current = copy;
+        setMarked(copy);
     };
+
+    const claim = () => {
+        if (wonRef.current) return;
+        if (hasBingo(marked)) {
+            stopTimer();
+            setRunning(false);
+            wonRef.current = true;
+            setWon(true);
+            add(WIN_REWARD);
+            toast.success(`BINGO! +${WIN_REWARD} chips`);
+        } else {
+            toast.error('No completed line yet — keep daubing!');
+        }
+    };
+
+    return (
+        <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+            {/* Card */}
+            <div className="glass-panel rounded-3xl p-6">
+                {card.length === 0 ? (
+                    <div className="text-center py-16 space-y-4">
+                        <div className="text-6xl">🎱</div>
+                        <h3 className="text-xl font-bold text-white">Buy a card to play</h3>
+                        <p className="text-gray-400">A trial card costs {CARD_PRICE} chips. Fill any row, column, or diagonal to win {WIN_REWARD}.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="grid grid-cols-5 gap-2 mb-2">
+                            {COLUMN_LETTERS.map((l) => (
+                                <div key={l} className="text-center font-bold text-lg text-cyan-300">{l}</div>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-5 gap-2">
+                            {card.map((num, i) => {
+                                const isFree = i === FREE_INDEX;
+                                const isMarked = marked[i];
+                                const justDrawn = num === lastDrawn && !isFree;
+                                return (
+                                    <motion.button
+                                        key={i}
+                                        onClick={() => toggleMark(i)}
+                                        whileTap={{ scale: 0.9 }}
+                                        animate={justDrawn ? { scale: [1, 1.12, 1] } : {}}
+                                        className={`aspect-square rounded-xl font-bold text-sm md:text-base flex items-center justify-center transition
+                                            ${isMarked
+                                                ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg'
+                                                : 'bg-white/5 text-gray-200 border border-white/10 hover:bg-white/10'}`}
+                                    >
+                                        {isFree ? '★' : num}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                        <button
+                            onClick={claim}
+                            disabled={won}
+                            className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50"
+                        >
+                            {won ? '🎉 You won!' : 'Claim BINGO!'}
+                        </button>
+                    </>
+                )}
+            </div>
+
+            {/* Side panel */}
+            <div className="space-y-4">
+                <div className="glass-panel rounded-2xl px-5 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <span className="text-2xl">🪙</span>
+                        <div>
+                            <p className="text-xs uppercase tracking-wider text-gray-400">Trial Chips</p>
+                            <p className="text-xl font-bold text-amber-300">{credits.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    {credits < CARD_PRICE && !running && (
+                        <button onClick={reset} className="px-3 py-2 rounded-lg bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 transition text-xs font-semibold">
+                            Reset {STARTING_CREDITS}
+                        </button>
+                    )}
+                </div>
+
+                <div className="glass-panel rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-white">Caller</h3>
+                        <label className="flex items-center gap-2 text-xs text-gray-400 cursor-pointer">
+                            <input type="checkbox" checked={autoDaub} onChange={(e) => setAutoDaub(e.target.checked)} className="accent-emerald-500" />
+                            Auto-daub
+                        </label>
+                    </div>
+                    <div className="h-24 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 mb-3">
+                        {lastDrawn ? (
+                            <motion.div key={lastDrawn} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+                                <div className="text-xs text-cyan-300 font-bold">{COLUMN_LETTERS[Math.floor((lastDrawn - 1) / 15)]}</div>
+                                <div className="text-4xl font-bold text-white">{lastDrawn}</div>
+                            </motion.div>
+                        ) : (
+                            <span className="text-gray-500 text-sm">{running ? 'Drawing…' : 'Not started'}</span>
+                        )}
+                    </div>
+                    <button
+                        onClick={start}
+                        disabled={running || !canAfford(CARD_PRICE)}
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold hover:shadow-lg hover:shadow-cyan-500/30 transition disabled:opacity-50"
+                    >
+                        {running ? 'Game in progress…' : card.length ? `New Card · ${CARD_PRICE}` : `Buy Card · ${CARD_PRICE}`}
+                    </button>
+                </div>
+
+                <div className="glass-panel rounded-2xl p-5">
+                    <h3 className="font-bold text-white mb-2">Drawn ({drawn.length})</h3>
+                    <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto">
+                        {drawn.length === 0 && <span className="text-gray-500 text-sm">None yet.</span>}
+                        {drawn.map((n) => (
+                            <span key={n} className="w-7 h-7 rounded-full bg-white/10 text-xs flex items-center justify-center text-gray-200">{n}</span>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/* ------------------------------------------------------------------ */
+/*  On-chain Mode                                                     */
+/* ------------------------------------------------------------------ */
+
+const OnChainBingo: React.FC = () => {
+    const { isConnected } = useAccount();
+
+    const { data: currentGameId } = useContractRead({
+        address: BINGO_ADDRESS, abi: BINGO_ABI, functionName: 'currentGameId', watch: true,
+    }) as { data: bigint };
+
+    const { data: gameInfo, isError, refetch } = useContractRead({
+        address: BINGO_ADDRESS, abi: BINGO_ABI, functionName: 'getGameInfo',
+        args: [currentGameId || BigInt(0)], enabled: !!currentGameId, watch: true,
+    }) as { data: any; isError: boolean; refetch: () => void };
+
+    const { data: cardPrice } = useContractRead({ address: BINGO_ADDRESS, abi: BINGO_ABI, functionName: 'cardPrice' });
+    const { write: buyCard, data: buyData } = useContractWrite({ address: BINGO_ADDRESS, abi: BINGO_ABI, functionName: 'buyCard' });
+    const { isLoading: isBuying } = useWaitForTransaction({ hash: buyData?.hash, onSuccess: () => { toast.success('Card purchased!'); refetch(); } });
 
     if (!isConnected) {
         return (
-            <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-                <Typography variant="h4">Please connect your wallet to play Bingo</Typography>
-            </Container>
+            <div className="glass-panel rounded-2xl p-10 text-center space-y-3">
+                <div className="text-5xl">🔗</div>
+                <h3 className="text-xl font-bold text-white">Connect a wallet for on-chain bingo</h3>
+                <p className="text-gray-400">On-chain rooms pool real Sepolia ETH. Prefer no setup? Switch back to Trial mode above.</p>
+            </div>
         );
     }
 
-    // Game Info Parsing
-    // getGameInfo returns: [state, startTime, pool, totalPlayers, numbersDrawnCount]
-    const state = gameInfo ? gameInfo[0] : 0;
-    const pool = gameInfo ? gameInfo[2] : BigInt(0);
-    const drawnNumsList = drawnNumbers ? drawnNumbers.map(n => Number(n)) : [];
+    if (isError) {
+        return (
+            <div className="glass-panel rounded-2xl p-10 text-center space-y-3">
+                <div className="text-5xl">⚠️</div>
+                <h3 className="text-xl font-bold text-white">Contract not reachable</h3>
+                <p className="text-gray-400">The Bingo contract isn’t deployed on this network yet. Trial mode works right now with no setup.</p>
+                <button onClick={refetch} className="px-5 py-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition">Retry</button>
+            </div>
+        );
+    }
 
-    const isWaiting = state === GameState.WAITING;
+    const pool = gameInfo ? gameInfo[2] : BigInt(0);
 
     return (
-        <Container maxWidth="lg">
-            <Box sx={{ py: 4 }}>
-                <Typography variant="h3" component="h1" gutterBottom sx={{ textAlign: 'center', mb: 4, fontWeight: 'bold' }}>
-                    Crypto Bingo
-                </Typography>
+        <div className="glass-panel rounded-2xl p-8 text-center space-y-4 max-w-md mx-auto">
+            <h3 className="text-xl font-bold text-white">Live Bingo Room</h3>
+            <p className="text-gray-400">Prize pool: <span className="text-emerald-300 font-bold">{formatEther(pool)} ETH</span></p>
+            <p className="text-gray-400">Card price: {cardPrice ? formatEther(cardPrice as bigint) : '0'} ETH</p>
+            <button
+                onClick={() => cardPrice && buyCard({ value: cardPrice as bigint })}
+                disabled={isBuying}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold hover:shadow-lg hover:shadow-orange-500/30 transition disabled:opacity-50"
+            >
+                {isBuying ? 'Buying…' : 'Buy Card'}
+            </button>
+        </div>
+    );
+};
 
-                <Grid container spacing={4}>
-                    {/* Game Status Panel */}
-                    <Grid item xs={12} md={4}>
-                        <Paper sx={{ p: 3, bgcolor: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', height: '100%' }}>
-                            <Typography variant="h5" gutterBottom>Game Status</Typography>
-                            <Box sx={{ mb: 2 }}>
-                                <Chip
-                                    label={
-                                        state === GameState.WAITING ? "Waiting for Players" :
-                                            state === GameState.ACTIVE ? "Game Active" :
-                                                state === GameState.DRAWING ? "Drawing Number..." : "Ended"
-                                    }
-                                    color={state === GameState.ACTIVE ? "success" : "default"}
-                                />
-                            </Box>
-                            <Typography>Prize Pool: {formatEther(pool)} ETH</Typography>
-                            <Typography>Card Price: {cardPrice ? formatEther(cardPrice) : '0'} ETH</Typography>
+/* ------------------------------------------------------------------ */
 
-                            <Box sx={{ mt: 4 }}>
-                                <Typography variant="h6" gutterBottom>Drawn Numbers</Typography>
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                    {drawnNumsList.map((num, i) => (
-                                        <Chip key={i} label={num} color="primary" size="small" />
-                                    ))}
-                                    {drawnNumsList.length === 0 && <Typography color="text.secondary">No numbers drawn yet.</Typography>}
-                                </Box>
-                            </Box>
+const BingoGame: React.FC = () => {
+    const [mode, setMode] = useState<GameMode>('trial');
 
-                            {isWaiting && (
-                                <Button
-                                    variant="contained"
-                                    fullWidth
-                                    size="large"
-                                    sx={{ mt: 4 }}
-                                    onClick={handleBuyCard}
-                                    disabled={isBuying}
-                                >
-                                    {isBuying ? "Buying..." : "Buy Card"}
-                                </Button>
-                            )}
-                        </Paper>
-                    </Grid>
+    return (
+        <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-6">
+                <h1 className="text-4xl md:text-5xl font-bold mb-2">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-amber-400">Bingo</span>
+                    <span className="ml-3">🎱</span>
+                </h1>
+                <p className="text-gray-400">Daub a full line to win. Play free, or join an on-chain room.</p>
+            </div>
 
-                    {/* Cards Grid */}
-                    <Grid item xs={12} md={8}>
-                        <Paper sx={{ p: 3, bgcolor: 'transparent' }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h5">Your Cards</Typography>
-                                <IconButton onClick={() => { refetchPlayerCards(); refetchGameInfo(); refetchDrawnNumbers(); }}>
-                                    <RefreshIcon />
-                                </IconButton>
-                            </Box>
+            <ModeToggle mode={mode} onChange={setMode} />
 
-                            <Grid container spacing={3}>
-                                {playerCardIds && playerCardIds.map((id: bigint) => (
-                                    <Grid item xs={12} md={6} key={id.toString()}>
-                                        <CardFetcher cardId={id} />
-                                    </Grid>
-                                ))}
-                                {(!playerCardIds || playerCardIds.length === 0) && (
-                                    <Grid item xs={12}>
-                                        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(30, 41, 59, 0.6)' }}>
-                                            <Typography>You don't have any cards yet.</Typography>
-                                            {isWaiting && <Typography>Buy one to join the game!</Typography>}
-                                        </Paper>
-                                    </Grid>
-                                )}
-                            </Grid>
-                        </Paper>
-                    </Grid>
-                </Grid>
-            </Box>
-        </Container>
+            <div className="mt-6">
+                {mode === 'trial' ? <TrialBingo /> : <OnChainBingo />}
+            </div>
+        </div>
     );
 };
 
