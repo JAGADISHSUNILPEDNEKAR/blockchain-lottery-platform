@@ -15,6 +15,7 @@ import LotteryPage from './pages/lottery';
 import GamesPage from './pages/games';
 import BlackjackGame from './pages/BlackjackGame';
 import BingoGame from './pages/BingoGame';
+import TrialGame from './pages/TrialGame';
 
 // Components
 import Navbar from './components/Navbar';
@@ -77,6 +78,7 @@ function App() {
                 <Route path="/games" element={<GamesPage />} />
                 <Route path="/games/blackjack" element={<BlackjackGame />} />
                 <Route path="/games/bingo" element={<BingoGame />} />
+                <Route path="/games/:slug" element={<TrialGame />} />
               </Routes>
             </main>
             <Toaster
