@@ -21,6 +21,18 @@ const HomePage: React.FC = () => {
                 <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
                     Fair, transparent, and decentralized gaming platform powered by <span className="text-cyan-400">Ethereum</span> and <span className="text-purple-400">Chainlink VRF</span>.
                 </p>
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                    <RouterLink
+                        to="/games/blackjack"
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white font-bold hover:shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:-translate-y-0.5"
+                    >
+                        ▶ Play free — no wallet needed
+                    </RouterLink>
+                    <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-gray-300">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Trial Mode with play chips
+                    </span>
+                </div>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-8 px-4">
