@@ -1,0 +1,78 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+coverage.json
+.nyc_output
+
+# Production
+build/
+dist/
+artifacts/
+cache/
+typechain-types/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Hardhat
+deployments/localhost/
+deployments/hardhat/
+gas-report.txt
+
+# Frontend
+frontend/build/
+frontend/.env
+frontend/node_modules/
+
+# Misc
+*.log
+.cache
+.parcel-cache
+.next
+out
+.nuxt
+dist
+.cache/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.vscode-test
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Contract addresses (keep deployment files in version control)
+!deployments/sepolia/
+!deployments/polygon/
+
+# Private keys - NEVER commit these
+*.pem
+*.key
+private.txt
+secrets.json
