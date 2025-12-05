@@ -26,7 +26,7 @@ import {
   Casino,
 } from '@mui/icons-material';
 import { useContractRead, useContractWrite, useAccount, useWaitForTransaction } from 'wagmi';
-import { parseEther, formatEther } from 'viem';
+import { formatEther } from 'viem';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { LOTTERY_ABI, LOTTERY_ADDRESS } from '../utils/contracts';
@@ -49,7 +49,7 @@ const LotteryCard: React.FC = () => {
 
   // Read lottery info
   const { data: lotteryInfo, refetch: refetchInfo } = useContractRead({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getLotteryInfo',
     watch: true,
@@ -57,7 +57,7 @@ const LotteryCard: React.FC = () => {
 
   // Read player ticket count
   const { data: playerTickets } = useContractRead({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getPlayerTicketCount',
     args: address ? [address] : undefined,
@@ -67,7 +67,7 @@ const LotteryCard: React.FC = () => {
 
   // Read recent winner
   const { data: recentWinner } = useContractRead({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'recentWinner',
     watch: true,
@@ -79,7 +79,7 @@ const LotteryCard: React.FC = () => {
     write: buyTickets,
     isLoading: isBuying,
   } = useContractWrite({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'buyTickets',
   });
@@ -99,7 +99,7 @@ const LotteryCard: React.FC = () => {
 
   // End lottery transaction
   const { write: endLottery, isLoading: isEnding } = useContractWrite({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'endLottery',
     onSuccess: () => {
@@ -112,7 +112,7 @@ const LotteryCard: React.FC = () => {
 
   // Withdraw winnings
   const { write: withdrawWinnings, isLoading: isWithdrawing } = useContractWrite({
-    address: LOTTERY_ADDRESS,
+    address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'withdrawWinnings',
     onSuccess: () => {
@@ -130,7 +130,7 @@ const LotteryCard: React.FC = () => {
     const updateTimer = () => {
       const now = BigInt(Math.floor(Date.now() / 1000));
       const end = lotteryInfo.endTime;
-      
+
       if (now >= end) {
         setTimeRemaining('Lottery Ended');
         return;
@@ -151,10 +151,10 @@ const LotteryCard: React.FC = () => {
 
   const handleBuyTickets = () => {
     if (!lotteryInfo) return;
-    
+
     const tickets = BigInt(ticketCount);
     const totalCost = lotteryInfo.ticketPrice * tickets;
-    
+
     buyTickets({
       args: [tickets],
       value: totalCost,
@@ -305,7 +305,7 @@ const LotteryCard: React.FC = () => {
                   )}
                 </>
               )}
-              
+
               <Button
                 variant="outlined"
                 size="large"
