@@ -1,0 +1,27 @@
+{
+  "network": "localhost",
+  "chainId": 31337,
+  "deployer": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+  "timestamp": "2025-12-05T11:43:05.405Z",
+  "contracts": {
+    "lottery": {
+      "address": "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      "ticketPrice": "10000000000000000",
+      "maxTicketsPerPlayer": 100
+    },
+    "blackjack": {
+      "address": "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
+      "minBet": "1000000000000000",
+      "maxBet": "1000000000000000000"
+    },
+    "bingo": {
+      "address": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      "cardPrice": "10000000000000000"
+    }
+  },
+  "vrfConfig": {
+    "coordinator": "0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625",
+    "subscriptionId": "0",
+    "keyHash": "0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c"
+  }
+}
