@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WagmiConfig, createConfig, configureChains, mainnet, sepolia } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import { RainbowKitProvider, getDefaultWallets, connectorsForWallets, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { Toaster } from 'react-hot-toast';
@@ -23,6 +24,13 @@ import Navbar from './components/Navbar';
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [sepolia, mainnet],
   [
+    jsonRpcProvider({
+      rpc: (chain) => ({
+        http: chain.id === 11155111
+          ? 'https://ethereum-sepolia-rpc.publicnode.com'
+          : 'https://rpc.ankr.com/eth',
+      }),
+    }),
     alchemyProvider({ apiKey: process.env.REACT_APP_ALCHEMY_KEY || '' }),
     publicProvider()
   ]
