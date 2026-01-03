@@ -1,9 +1,9 @@
 // Frontend contract utilities and ABIs
 // Update these addresses after deployment
 
-export const LOTTERY_ADDRESS = process.env.REACT_APP_LOTTERY_ADDRESS || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9';
-export const BLACKJACK_ADDRESS = process.env.REACT_APP_BLACKJACK_ADDRESS || '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707';
-export const BINGO_ADDRESS = process.env.REACT_APP_BINGO_ADDRESS || '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853';
+export const LOTTERY_ADDRESS = (process.env.REACT_APP_LOTTERY_ADDRESS || '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9') as `0x${string}`;
+export const BLACKJACK_ADDRESS = (process.env.REACT_APP_BLACKJACK_ADDRESS || '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707') as `0x${string}`;
+export const BINGO_ADDRESS = (process.env.REACT_APP_BINGO_ADDRESS || '0xa513E6E4b8f2a923D98304ec87F64353C4D5C853') as `0x${string}`;
 
 export const LOTTERY_ABI = [
   {
@@ -317,5 +317,51 @@ export const BINGO_ABI = [
     ],
     "name": "BingoClaimed",
     "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "player", "type": "address" },
+      { "internalType": "uint256", "name": "_gameId", "type": "uint256" }
+    ],
+    "name": "getPlayerCards",
+    "outputs": [
+      { "internalType": "uint256[]", "name": "", "type": "uint256[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_gameId", "type": "uint256" },
+      { "internalType": "uint256", "name": "cardId", "type": "uint256" }
+    ],
+    "name": "getCardDetails",
+    "outputs": [
+      { "internalType": "uint8[25]", "name": "numbers", "type": "uint8[25]" },
+      { "internalType": "bool[25]", "name": "marked", "type": "bool[25]" },
+      { "internalType": "address", "name": "owner", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "_gameId", "type": "uint256" }
+    ],
+    "name": "getDrawnNumbers",
+    "outputs": [
+      { "internalType": "uint8[]", "name": "", "type": "uint8[]" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "currentGameId",
+    "outputs": [
+      { "internalType": "uint256", "name": "", "type": "uint256" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
 ] as const;

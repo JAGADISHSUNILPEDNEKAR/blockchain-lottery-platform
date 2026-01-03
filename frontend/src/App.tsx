@@ -13,6 +13,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import HomePage from './pages/index';
 import LotteryPage from './pages/lottery';
 import GamesPage from './pages/games';
+import BlackjackGame from './pages/BlackjackGame';
+import BingoGame from './pages/BingoGame';
 
 // Components
 import Navbar from './components/Navbar';
@@ -107,6 +109,8 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/lottery" element={<LotteryPage />} />
                   <Route path="/games" element={<GamesPage />} />
+                  <Route path="/games/blackjack" element={<BlackjackGame />} />
+                  <Route path="/games/bingo" element={<BingoGame />} />
                 </Routes>
               </main>
               <Toaster
