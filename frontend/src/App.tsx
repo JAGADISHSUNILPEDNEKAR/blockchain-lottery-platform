@@ -1,9 +1,9 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { WagmiConfig, createConfig, configureChains, mainnet, sepolia } from 'wagmi';
 import { publicProvider } from 'wagmi/providers/public';
 import { alchemyProvider } from 'wagmi/providers/alchemy';
-import { RainbowKitProvider, getDefaultWallets, connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, getDefaultWallets, connectorsForWallets, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { Toaster } from 'react-hot-toast';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -94,11 +94,9 @@ const theme = createTheme({
 function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains} theme={{
-        blurs: {
-          modalBackground: 'blur(10px)',
-        },
-      }}>
+      <RainbowKitProvider chains={chains} theme={darkTheme({
+        overlayBlur: 'small',
+      })}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Router>

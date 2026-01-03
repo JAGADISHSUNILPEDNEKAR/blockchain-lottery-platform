@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 
 contract Blackjack is VRFConsumerBaseV2, ReentrancyGuard, Ownable {
     // Chainlink VRF
@@ -72,16 +72,17 @@ contract Blackjack is VRFConsumerBaseV2, ReentrancyGuard, Ownable {
         require(games[msg.sender].state == GameState.WAITING, "Game already in progress");
         require(address(this).balance >= msg.value * 2, "Insufficient house balance");
         
-        games[msg.sender] = Game({
-            player: msg.sender,
-            bet: msg.value,
-            playerCards: new Card[](0),
-            dealerCards: new Card[](0),
-            state: GameState.PLAYER_TURN,
-            requestId: 0,
-            playerStood: false,
-            timestamp: block.timestamp
-        });
+        Game storage game = games[msg.sender];
+        game.player = msg.sender;
+        game.bet = msg.value;
+        game.state = GameState.PLAYER_TURN;
+        game.requestId = 0;
+        game.playerStood = false;
+        game.timestamp = block.timestamp;
+        
+        // Clear arrays from previous games
+        delete game.playerCards;
+        delete game.dealerCards;
         
         // Request initial cards
         uint256 requestId = i_vrfCoordinator.requestRandomWords(
