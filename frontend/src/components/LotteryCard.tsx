@@ -48,12 +48,24 @@ const LotteryCard: React.FC = () => {
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
   // Read lottery info
-  const { data: lotteryInfo, refetch: refetchInfo } = useContractRead({
+  const {
+    data: lotteryInfo,
+    refetch: refetchInfo,
+    isError: isLotteryError,
+    error: lotteryError,
+    isLoading: isLotteryLoading
+  } = useContractRead({
     address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
     functionName: 'getLotteryInfo',
     watch: true,
-  }) as { data: LotteryInfo | undefined; refetch: () => void };
+  }) as {
+    data: LotteryInfo | undefined;
+    refetch: () => void;
+    isError: boolean;
+    error: Error | null;
+    isLoading: boolean;
+  };
 
   // Read player ticket count
   const { data: playerTickets } = useContractRead({
@@ -179,12 +191,56 @@ const LotteryCard: React.FC = () => {
     }
   };
 
-  if (!lotteryInfo) {
+  useEffect(() => {
+    if (isLotteryError && lotteryError) {
+      console.error("Error fetching lottery info:", lotteryError);
+    }
+  }, [isLotteryError, lotteryError]);
+
+  if (isLotteryError) {
+    return (
+      <Card>
+        <CardContent>
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="h6">Error Loading Lottery</Typography>
+            <Typography variant="body2">
+              Failed to load lottery information. Please make sure you are on the correct network (Sepolia/Mainnet) and try again.
+            </Typography>
+            {lotteryError && (
+              <Typography variant="caption" sx={{ mt: 1, display: 'block', fontFamily: 'monospace' }}>
+                {lotteryError.message}
+              </Typography>
+            )}
+          </Alert>
+          <Button variant="outlined" onClick={() => refetchInfo()}>
+            Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLotteryLoading && !lotteryInfo) {
     return (
       <Card>
         <CardContent>
           <LinearProgress />
           <Typography sx={{ mt: 2 }}>Loading lottery information...</Typography>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!lotteryInfo) {
+    return (
+      <Card>
+        <CardContent>
+          <Alert severity="warning">
+            <Typography>No lottery information available.</Typography>
+          </Alert>
+          <Button variant="outlined" onClick={() => refetchInfo()} sx={{ mt: 2 }}>
+            Retry
+          </Button>
         </CardContent>
       </Card>
     );
