@@ -25,7 +25,7 @@ interface BingoCardProps {
 
 const BingoCard: React.FC<BingoCardProps> = ({ numbers, marked, cardId, onMark, onClaim, isClaiming }) => {
     return (
-        <Paper sx={{ p: 2, bgcolor: '#1e293b', border: '1px solid #334155' }}>
+        <Paper sx={{ p: 2, bgcolor: '#0F0F0F', border: '1px solid #E50914' }}>
             <Typography variant="h6" gutterBottom align="center">Card #{cardId.toString()}</Typography>
             <Grid container spacing={1} sx={{ maxWidth: 300, mx: 'auto' }}>
                 {numbers.map((num, i) => (
@@ -37,12 +37,12 @@ const BingoCard: React.FC<BingoCardProps> = ({ numbers, marked, cardId, onMark, 
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                bgcolor: marked[i] ? '#22c55e' : '#334155',
-                                color: marked[i] ? 'white' : '#94a3b8',
+                                bgcolor: marked[i] ? '#E50914' : '#262626',
+                                color: marked[i] ? 'white' : '#9ca3af',
                                 borderRadius: 1,
                                 cursor: marked[i] ? 'default' : 'pointer',
                                 '&:hover': {
-                                    bgcolor: marked[i] ? '#22c55e' : '#475569',
+                                    bgcolor: marked[i] ? '#E50914' : '#404040',
                                 },
                                 fontWeight: 'bold'
                             }}
@@ -244,7 +244,7 @@ const BingoGame: React.FC = () => {
                 <Grid container spacing={4}>
                     {/* Game Status Panel */}
                     <Grid item xs={12} md={4}>
-                        <Paper sx={{ p: 3, bgcolor: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', height: '100%' }}>
+                        <Paper sx={{ p: 3, bgcolor: 'rgba(15, 15, 15, 0.9)', backdropFilter: 'blur(10px)', height: '100%', border: '1px solid rgba(229, 9, 20, 0.2)' }}>
                             <Typography variant="h5" gutterBottom>Game Status</Typography>
                             <Box sx={{ mb: 2 }}>
                                 <Chip
@@ -302,7 +302,7 @@ const BingoGame: React.FC = () => {
                                 ))}
                                 {(!playerCardIds || playerCardIds.length === 0) && (
                                     <Grid item xs={12}>
-                                        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(30, 41, 59, 0.6)' }}>
+                                        <Paper sx={{ p: 4, textAlign: 'center', bgcolor: 'rgba(15, 15, 15, 0.9)', border: '1px solid rgba(229, 9, 20, 0.2)' }}>
                                             <Typography>You don't have any cards yet.</Typography>
                                             {isWaiting && <Typography>Buy one to join the game!</Typography>}
                                         </Paper>

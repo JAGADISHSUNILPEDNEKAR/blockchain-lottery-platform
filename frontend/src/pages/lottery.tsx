@@ -12,7 +12,7 @@ const LotteryPage: React.FC = () => {
                 className="text-center mb-12"
             >
                 <h1 className="text-5xl md:text-7xl font-bold mb-4 tracking-tighter">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-heist-red via-red-600 to-heist-red">
                         Decentralized Lottery
                     </span>
                 </h1>

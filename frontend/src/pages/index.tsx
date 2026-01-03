@@ -12,14 +12,14 @@ const HomePage: React.FC = () => {
                 className="text-center mb-20"
             >
                 <h1 className="text-6xl md:text-8xl font-bold mb-6 tracking-tighter">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-heist-red via-red-600 to-heist-red">
                         Blockchain
                     </span>
                     <br />
                     <span className="text-white">Lottery & Gaming</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed">
-                    Fair, transparent, and decentralized gaming platform powered by <span className="text-cyan-400">Ethereum</span> and <span className="text-purple-400">Chainlink VRF</span>.
+                    Fair, transparent, and decentralized gaming platform powered by <span className="text-heist-red">Ethereum</span> and <span className="text-red-500">Chainlink VRF</span>.
                 </p>
             </motion.div>
 
@@ -28,9 +28,9 @@ const HomePage: React.FC = () => {
                     initial={{ opacity: 0, x: -50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2, duration: 0.6 }}
-                    className="glass-panel p-8 rounded-3xl hover:bg-white/10 transition-colors group"
+                    className="glass-panel p-8 rounded-3xl hover:bg-white/5 transition-colors group"
                 >
-                    <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-2xl bg-heist-red/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <span className="text-4xl">🎲</span>
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-4">Lottery</h2>
@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
                     </p>
                     <RouterLink
                         to="/lottery"
-                        className="inline-block w-full py-4 text-center rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-bold hover:shadow-lg hover:shadow-cyan-500/20 transition-all transform hover:-translate-y-1"
+                        className="inline-block w-full py-4 text-center rounded-xl bg-gradient-to-r from-heist-red to-red-800 text-white font-bold hover:shadow-lg hover:shadow-heist-red/20 transition-all transform hover:-translate-y-1"
                     >
                         Play Lottery
                     </RouterLink>
@@ -49,9 +49,9 @@ const HomePage: React.FC = () => {
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.6 }}
-                    className="glass-panel p-8 rounded-3xl hover:bg-white/10 transition-colors group"
+                    className="glass-panel p-8 rounded-3xl hover:bg-white/5 transition-colors group"
                 >
-                    <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 rounded-2xl bg-heist-red/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                         <span className="text-4xl">🎮</span>
                     </div>
                     <h2 className="text-3xl font-bold text-white mb-4">Games</h2>
@@ -60,7 +60,7 @@ const HomePage: React.FC = () => {
                     </p>
                     <RouterLink
                         to="/games"
-                        className="inline-block w-full py-4 text-center rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold hover:shadow-lg hover:shadow-purple-500/20 transition-all transform hover:-translate-y-1"
+                        className="inline-block w-full py-4 text-center rounded-xl bg-gradient-to-r from-heist-red to-red-800 text-white font-bold hover:shadow-lg hover:shadow-heist-red/20 transition-all transform hover:-translate-y-1"
                     >
                         Play Games
                     </RouterLink>

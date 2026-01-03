@@ -14,7 +14,7 @@ const GamesPage: React.FC = () => {
                 className="text-center mb-16"
             >
                 <h1 className="text-5xl md:text-7xl font-bold mb-4">
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-cyan-500">
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-heist-red to-red-600">
                         Casino Games
                     </span>
                 </h1>
@@ -29,7 +29,7 @@ const GamesPage: React.FC = () => {
                     className="glass-panel p-8 rounded-3xl relative overflow-hidden group hover:bg-white/10 transition-colors cursor-pointer"
                     onClick={() => navigate('/games/blackjack')}
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
                     <div className="relative z-10">
                         <div className="text-4xl mb-4">🃏</div>
@@ -37,7 +37,7 @@ const GamesPage: React.FC = () => {
                         <p className="text-gray-400 mb-6">
                             Play Blackjack against the smart contract dealer. Provably fair and transparent.
                         </p>
-                        <button className="px-6 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                        <button className="px-6 py-2 rounded-lg bg-heist-red/20 text-red-300 border border-heist-red/30 group-hover:bg-heist-red group-hover:text-white transition-all">
                             Play Now
                         </button>
                     </div>
@@ -50,7 +50,7 @@ const GamesPage: React.FC = () => {
                     className="glass-panel p-8 rounded-3xl relative overflow-hidden group hover:bg-white/10 transition-colors cursor-pointer"
                     onClick={() => navigate('/games/bingo')}
                 >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-heist-red/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
 
                     <div className="relative z-10">
                         <div className="text-4xl mb-4">🎱</div>
@@ -58,7 +58,7 @@ const GamesPage: React.FC = () => {
                         <p className="text-gray-400 mb-6">
                             Multiplayer Bingo with automated number drawing. Join rooms and win pots!
                         </p>
-                        <button className="px-6 py-2 rounded-lg bg-orange-500/20 text-orange-300 border border-orange-500/30 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                        <button className="px-6 py-2 rounded-lg bg-heist-red/20 text-red-300 border border-heist-red/30 group-hover:bg-heist-red group-hover:text-white transition-all">
                             Play Now
                         </button>
                     </div>

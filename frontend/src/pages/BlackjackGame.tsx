@@ -19,7 +19,7 @@ enum GameState {
 }
 
 const suitSymbols = ['♥', '♦', '♣', '♠'];
-const suitColors = ['#ef4444', '#ef4444', '#1e293b', '#1e293b'];
+const suitColors = ['#E50914', '#E50914', '#000000', '#000000'];
 const rankLabels = ['', 'A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -30,13 +30,13 @@ const CardDisplay: React.FC<{ card: any; hidden?: boolean }> = ({ card, hidden }
                 sx={{
                     width: 60,
                     height: 90,
-                    bgcolor: '#334155',
+                    bgcolor: '#7f1d1d',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderRadius: 1,
-                    border: '1px solid #475569',
-                    backgroundImage: 'linear-gradient(135deg, #334155 25%, #475569 25%, #475569 50%, #334155 50%, #334155 75%, #475569 75%, #475569 100%)',
+                    border: '1px solid #991b1b',
+                    backgroundImage: 'linear-gradient(135deg, #7f1d1d 25%, #991b1b 25%, #991b1b 50%, #7f1d1d 50%, #7f1d1d 75%, #991b1b 75%, #991b1b 100%)',
                     backgroundSize: '10px 10px'
                 }}
             />
@@ -192,7 +192,7 @@ const BlackjackGame: React.FC = () => {
                     Blackjack
                 </Typography>
 
-                <Paper sx={{ p: 4, bgcolor: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', minHeight: '60vh' }}>
+                <Paper sx={{ p: 4, bgcolor: 'rgba(15, 15, 15, 0.9)', backdropFilter: 'blur(10px)', minHeight: '60vh', border: '1px solid rgba(229, 9, 20, 0.2)' }}>
 
                     {/* Dealer Area */}
                     <Box sx={{ mb: 6, textAlign: 'center' }}>

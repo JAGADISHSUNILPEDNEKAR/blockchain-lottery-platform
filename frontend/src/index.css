@@ -4,29 +4,29 @@
 
 @layer base {
   body {
-    @apply bg-slate-950 text-white min-h-screen font-sans antialiased selection:bg-purple-500/30 selection:text-purple-200;
+    @apply bg-heist-dark text-white min-h-screen font-sans antialiased selection:bg-heist-red/30 selection:text-red-200;
     background-image:
-      radial-gradient(circle at 50% 0%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 0% 50%, rgba(56, 189, 248, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 100% 50%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 50% 0%, rgba(229, 9, 20, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 0% 50%, rgba(38, 38, 38, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 100% 50%, rgba(229, 9, 20, 0.1) 0%, transparent 50%);
     background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-xl;
+    @apply backdrop-blur-xl bg-black/40 border border-heist-red/20 shadow-xl shadow-heist-red/5;
   }
 
   .glass-card {
-    @apply backdrop-blur-md bg-slate-900/40 border border-white/5 shadow-lg transition-all duration-300;
+    @apply backdrop-blur-md bg-heist-gray/40 border border-heist-red/10 shadow-lg transition-all duration-300;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-heist-red to-red-600;
   }
 
   .neon-border {
-    @apply border border-transparent hover:border-purple-500/50 transition-colors duration-300;
+    @apply border border-transparent hover:border-heist-red/50 transition-colors duration-300;
   }
 }

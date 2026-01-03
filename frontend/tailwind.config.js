@@ -5,7 +5,16 @@ export default {
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                heist: {
+                    red: '#E50914',
+                    dark: '#0F0F0F',
+                    gray: '#262626',
+                    gold: '#F5C518',
+                }
+            }
+        },
     },
     plugins: [],
 }

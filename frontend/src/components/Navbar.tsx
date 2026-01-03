@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
             <div className="glass-panel rounded-full px-6 py-3 flex items-center justify-between max-w-7xl mx-auto">
                 {/* Logo */}
                 <RouterLink to="/" className="text-xl font-bold flex items-center gap-2 group">
-                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-purple-600 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-heist-red to-red-800 flex items-center justify-center text-white group-hover:scale-110 transition-transform">
                         B
                     </span>
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
@@ -97,8 +97,8 @@ const Navbar: React.FC = () => {
                                 to={link.path}
                                 onClick={() => setIsOpen(false)}
                                 className={`p-3 rounded-xl transition-colors ${location.pathname === link.path
-                                        ? "bg-white/10 text-white"
-                                        : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                    ? "bg-white/10 text-white"
+                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
                                     }`}
                             >
                                 {link.name}

@@ -188,7 +188,7 @@ const LotteryCard: React.FC = () => {
   if (isLotteryLoading && !lotteryInfo) {
     return (
       <div className="glass-panel p-12 rounded-3xl flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mb-4"></div>
+        <div className="w-12 h-12 border-4 border-heist-red/30 border-t-heist-red rounded-full animate-spin mb-4"></div>
         <div className="text-gray-400 animate-pulse">Loading Blockchain Data...</div>
       </div>
     );
@@ -209,8 +209,8 @@ const LotteryCard: React.FC = () => {
         className="glass-panel rounded-3xl overflow-hidden relative"
       >
         {/* Decorative background glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-red-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-heist-red/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="p-8 relative z-10">
           {/* Header */}
@@ -230,9 +230,9 @@ const LotteryCard: React.FC = () => {
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Prize Pool */}
             <div className="glass-card p-6 rounded-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-heist-red/10 to-red-900/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
-                <div className="flex items-center gap-2 text-cyan-400 mb-2 font-medium">
+                <div className="flex items-center gap-2 text-heist-red mb-2 font-medium">
                   <Icons.Money /> Prize Pool
                 </div>
                 <div className="text-4xl lg:text-5xl font-bold text-white tracking-tight">
@@ -241,11 +241,10 @@ const LotteryCard: React.FC = () => {
               </div>
             </div>
 
-            {/* Time Remaining */}
             <div className="glass-card p-6 rounded-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative z-10">
-                <div className="flex items-center gap-2 text-pink-400 mb-2 font-medium">
+                <div className="flex items-center gap-2 text-red-400 mb-2 font-medium">
                   <Icons.Timer /> Time Remaining
                 </div>
                 <div className={`text-4xl lg:text-5xl font-bold tracking-tight ${timeRemaining === 'Lottery Ended' ? 'text-red-400' : 'text-white'}`}>
@@ -280,10 +279,10 @@ const LotteryCard: React.FC = () => {
           {/* User Stats & Actions */}
           <div className="space-y-6">
             {isConnected && (
-              <div className="flex items-center justify-between p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-heist-red/10 border border-heist-red/20">
                 <div className="flex items-center gap-2">
                   <Icons.Wallet />
-                  <span className="text-purple-200">Your Tickets</span>
+                  <span className="text-gray-200">Your Tickets</span>
                 </div>
                 <span className="text-2xl font-bold text-white">{playerTickets?.toString() || '0'}</span>
               </div>
@@ -304,7 +303,7 @@ const LotteryCard: React.FC = () => {
                 <button
                   onClick={() => setShowBuyDialog(true)}
                   disabled={!isConnected || timeRemaining === 'Lottery Ended'}
-                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                  className="flex-1 bg-gradient-to-r from-heist-red to-red-800 hover:from-red-600 hover:to-red-900 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-heist-red/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
                 >
                   Buy Tickets
                 </button>
@@ -359,13 +358,13 @@ const LotteryCard: React.FC = () => {
                   max="100"
                   value={ticketCount}
                   onChange={(e) => setTicketCount(e.target.value)}
-                  className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white text-lg focus:outline-none focus:border-cyan-500 transition-colors"
+                  className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white text-lg focus:outline-none focus:border-heist-red transition-colors"
                 />
               </div>
 
               {lotteryInfo && (
-                <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl mb-6">
-                  <div className="text-cyan-400 text-sm uppercase tracking-wider mb-1">Total Cost</div>
+                <div className="bg-heist-red/10 border border-heist-red/20 p-4 rounded-xl mb-6">
+                  <div className="text-heist-red text-sm uppercase tracking-wider mb-1">Total Cost</div>
                   <div className="text-xl font-bold text-white">
                     {formatEther(lotteryInfo.ticketPrice * BigInt(ticketCount || '0'))} ETH
                   </div>
@@ -382,7 +381,7 @@ const LotteryCard: React.FC = () => {
                 <button
                   onClick={handleBuyTickets}
                   disabled={isBuying || isConfirming || !ticketCount || Number(ticketCount) < 1}
-                  className="flex-1 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-colors disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl bg-heist-red hover:bg-red-600 text-white font-bold transition-colors disabled:opacity-50"
                 >
                   {isBuying || isConfirming ? 'Processing...' : 'Confirm Buy'}
                 </button>
