@@ -137,15 +137,10 @@ const BingoGame: React.FC = () => {
         hash: buyCardData?.hash,
         onSuccess: () => { toast.success('Card Purchased!'); refetchPlayerCards(); }
     });
-    const { isLoading: isMarking } = useWaitForTransaction({
+    useWaitForTransaction({
         hash: markNumberData?.hash,
         onSuccess: () => { toast.success('Number Marked!'); refetchCards(); }
     });
-    // Use isMarking to prevent re-marking if needed, just suppressing unused warning for now by using it in minimal way or removing.
-    // Actually, let's remove it if truly unused or use it in the UI. 
-    // The previous implementation passed it but didn't use it in UI clearly?
-    // Ah, wait, card click handler doesn't use loading state. Let's leave it but suppress warning or use it.
-    // Better yet, just remove unused variable from destructuring if not used.
     const { isLoading: isClaiming } = useWaitForTransaction({
         hash: claimBingoData?.hash,
         onSuccess: () => { toast.success('Bingo Claimed! Winner!'); }
