@@ -1,35 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  TextField,
-  Box,
-  Grid,
-  Chip,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Alert,
-  Divider,
-} from '@mui/material';
-import {
-  AccountBalanceWallet,
-  Timer,
-  EmojiEvents,
-  ConfirmationNumber,
-  Groups,
-  LocalAtm,
-  Casino,
-} from '@mui/icons-material';
 import { useContractRead, useContractWrite, useAccount, useWaitForTransaction } from 'wagmi';
 import { formatEther } from 'viem';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { LOTTERY_ABI, LOTTERY_ADDRESS } from '../utils/contracts';
+
+// Icons
+const Icons = {
+  Casino: () => <span className="text-2xl">🎲</span>,
+  Timer: () => <span className="text-xl">⏳</span>,
+  Groups: () => <span className="text-xl">👥</span>,
+  Money: () => <span className="text-xl">💰</span>,
+  Ticket: () => <span className="text-xl">🎟️</span>,
+  Trophy: () => <span className="text-xl">🏆</span>,
+  Wallet: () => <span className="text-xl">👛</span>,
+};
 
 interface LotteryInfo {
   lotteryId: bigint;
@@ -47,7 +32,10 @@ const LotteryCard: React.FC = () => {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
 
-  // Read lottery info
+  // -------------------------------------------------------------
+  // WAGMI HOOKS (Logic Preserved)
+  // -------------------------------------------------------------
+
   const {
     data: lotteryInfo,
     refetch: refetchInfo,
@@ -67,7 +55,6 @@ const LotteryCard: React.FC = () => {
     isLoading: boolean;
   };
 
-  // Read player ticket count
   const { data: playerTickets } = useContractRead({
     address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
@@ -77,7 +64,6 @@ const LotteryCard: React.FC = () => {
     watch: true,
   });
 
-  // Read recent winner
   const { data: recentWinner } = useContractRead({
     address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
@@ -85,7 +71,6 @@ const LotteryCard: React.FC = () => {
     watch: true,
   });
 
-  // Buy tickets transaction
   const {
     data: buyData,
     write: buyTickets,
@@ -109,7 +94,6 @@ const LotteryCard: React.FC = () => {
     },
   });
 
-  // End lottery transaction
   const { write: endLottery, isLoading: isEnding } = useContractWrite({
     address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
@@ -122,7 +106,6 @@ const LotteryCard: React.FC = () => {
     },
   });
 
-  // Withdraw winnings
   const { write: withdrawWinnings, isLoading: isWithdrawing } = useContractWrite({
     address: LOTTERY_ADDRESS as `0x${string}`,
     abi: LOTTERY_ABI,
@@ -135,7 +118,6 @@ const LotteryCard: React.FC = () => {
     },
   });
 
-  // Update time remaining
   useEffect(() => {
     if (!lotteryInfo) return;
 
@@ -163,14 +145,9 @@ const LotteryCard: React.FC = () => {
 
   const handleBuyTickets = () => {
     if (!lotteryInfo) return;
-
     const tickets = BigInt(ticketCount);
     const totalCost = lotteryInfo.ticketPrice * tickets;
-
-    buyTickets({
-      args: [tickets],
-      value: totalCost,
-    });
+    buyTickets({ args: [tickets], value: totalCost });
   };
 
   const getLotteryStateText = (state: number) => {
@@ -184,230 +161,236 @@ const LotteryCard: React.FC = () => {
 
   const getLotteryStateColor = (state: number) => {
     switch (state) {
-      case 0: return 'default';
-      case 1: return 'success';
-      case 2: return 'warning';
-      default: return 'default';
+      case 0: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
+      case 1: return 'bg-green-500/20 text-green-400 border-green-500/50';
+      case 2: return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
     }
   };
 
-  useEffect(() => {
-    if (isLotteryError && lotteryError) {
-      console.error("Error fetching lottery info:", lotteryError);
-    }
-  }, [isLotteryError, lotteryError]);
+  // -------------------------------------------------------------
+  // ERROR & LOADING STATES
+  // -------------------------------------------------------------
 
   if (isLotteryError) {
     return (
-      <Card>
-        <CardContent>
-          <Alert severity="error" sx={{ mb: 2 }}>
-            <Typography variant="h6">Error Loading Lottery</Typography>
-            <Typography variant="body2">
-              Failed to load lottery information. Please make sure you are on the correct network (Sepolia/Mainnet) and try again.
-            </Typography>
-            {lotteryError && (
-              <Typography variant="caption" sx={{ mt: 1, display: 'block', fontFamily: 'monospace' }}>
-                {lotteryError.message}
-              </Typography>
-            )}
-          </Alert>
-          <Button variant="outlined" onClick={() => refetchInfo()}>
-            Retry
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="glass-panel p-8 rounded-3xl text-center">
+        <div className="text-red-400 text-xl font-bold mb-2">Error Loading Lottery</div>
+        <p className="text-gray-400 mb-4">Please check your network connection (Sepolia/Mainnet).</p>
+        {lotteryError && <div className="text-xs font-mono bg-black/30 p-2 rounded mb-4 text-red-300">{lotteryError.message}</div>}
+        <button onClick={() => refetchInfo()} className="px-6 py-2 rounded-xl border border-white/20 hover:bg-white/5 transition-colors">
+          Retry
+        </button>
+      </div>
     );
   }
 
   if (isLotteryLoading && !lotteryInfo) {
     return (
-      <Card>
-        <CardContent>
-          <LinearProgress />
-          <Typography sx={{ mt: 2 }}>Loading lottery information...</Typography>
-        </CardContent>
-      </Card>
+      <div className="glass-panel p-12 rounded-3xl flex flex-col items-center justify-center min-h-[400px]">
+        <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mb-4"></div>
+        <div className="text-gray-400 animate-pulse">Loading Blockchain Data...</div>
+      </div>
     );
   }
 
-  if (!lotteryInfo) {
-    return (
-      <Card>
-        <CardContent>
-          <Alert severity="warning">
-            <Typography>No lottery information available.</Typography>
-          </Alert>
-          <Button variant="outlined" onClick={() => refetchInfo()} sx={{ mt: 2 }}>
-            Retry
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!lotteryInfo) return null;
+
+  // -------------------------------------------------------------
+  // MAIN RENDER
+  // -------------------------------------------------------------
 
   return (
     <>
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
+        className="glass-panel rounded-3xl overflow-hidden relative"
       >
-        <Card elevation={3}>
-          <CardContent>
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Casino fontSize="large" />
-                Lottery #{lotteryInfo.lotteryId.toString()}
-              </Typography>
-              <Chip
-                label={getLotteryStateText(lotteryInfo.state)}
-                color={getLotteryStateColor(lotteryInfo.state) as any}
-                sx={{ mb: 2 }}
-              />
-            </Box>
+        {/* Decorative background glow */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" color="primary" gutterBottom>
-                    <LocalAtm sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Prize Pool
-                  </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 'bold' }}>
-                    {formatEther(lotteryInfo.prizePool)} ETH
-                  </Typography>
-                </Box>
+        <div className="p-8 relative z-10">
+          {/* Header */}
+          <div className="flex justify-between items-start mb-12">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <Icons.Casino />
+                <h2 className="text-2xl font-bold text-white">Lottery #{lotteryInfo.lotteryId.toString()}</h2>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getLotteryStateColor(lotteryInfo.state)}`}>
+                {getLotteryStateText(lotteryInfo.state)}
+              </span>
+            </div>
+          </div>
 
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    <ConfirmationNumber sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Ticket Price
-                  </Typography>
-                  <Typography variant="h5">
-                    {formatEther(lotteryInfo.ticketPrice)} ETH
-                  </Typography>
-                </Box>
-              </Grid>
+          {/* Main Stats Grid */}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Prize Pool */}
+            <div className="glass-card p-6 rounded-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 text-cyan-400 mb-2 font-medium">
+                  <Icons.Money /> Prize Pool
+                </div>
+                <div className="text-4xl lg:text-5xl font-bold text-white tracking-tight">
+                  {formatEther(lotteryInfo.prizePool)} <span className="text-lg text-gray-400">ETH</span>
+                </div>
+              </div>
+            </div>
 
-              <Grid item xs={12} md={6}>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    <Timer sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Time Remaining
-                  </Typography>
-                  <Typography variant="h5" color={timeRemaining === 'Lottery Ended' ? 'error' : 'inherit'}>
-                    {timeRemaining || 'Loading...'}
-                  </Typography>
-                </Box>
+            {/* Time Remaining */}
+            <div className="glass-card p-6 rounded-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-orange-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 text-pink-400 mb-2 font-medium">
+                  <Icons.Timer /> Time Remaining
+                </div>
+                <div className={`text-4xl lg:text-5xl font-bold tracking-tight ${timeRemaining === 'Lottery Ended' ? 'text-red-400' : 'text-white'}`}>
+                  {timeRemaining || 'Loading...'}
+                </div>
+              </div>
+            </div>
 
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    <Groups sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    Total Tickets Sold
-                  </Typography>
-                  <Typography variant="h5">
-                    {lotteryInfo.totalTickets.toString()}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
+            {/* Ticket Price */}
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+              <div className="flex items-center gap-2 text-gray-400 mb-1">
+                <Icons.Ticket /> Ticket Price
+              </div>
+              <div className="text-2xl font-semibold text-white">
+                {formatEther(lotteryInfo.ticketPrice)} ETH
+              </div>
+            </div>
 
-            <Divider sx={{ my: 3 }} />
+            {/* Total Tickets */}
+            <div className="p-6 rounded-2xl bg-white/5 border border-white/5">
+              <div className="flex items-center gap-2 text-gray-400 mb-1">
+                <Icons.Groups /> Tickets Sold
+              </div>
+              <div className="text-2xl font-semibold text-white">
+                {lotteryInfo.totalTickets.toString()}
+              </div>
+            </div>
+          </div>
 
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent my-8" />
+
+          {/* User Stats & Actions */}
+          <div className="space-y-6">
             {isConnected && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  <AccountBalanceWallet sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Your Tickets
-                </Typography>
-                <Typography variant="h4" color="primary">
-                  {playerTickets?.toString() || '0'}
-                </Typography>
-              </Box>
+              <div className="flex items-center justify-between p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <div className="flex items-center gap-2">
+                  <Icons.Wallet />
+                  <span className="text-purple-200">Your Tickets</span>
+                </div>
+                <span className="text-2xl font-bold text-white">{playerTickets?.toString() || '0'}</span>
+              </div>
             )}
 
             {recentWinner && recentWinner !== '0x0000000000000000000000000000000000000000' && (
-              <Alert severity="success" sx={{ mb: 3 }}>
-                <Typography variant="subtitle1">
-                  <EmojiEvents sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Recent Winner: {recentWinner as string}
-                </Typography>
-              </Alert>
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 flex items-start gap-3">
+                <Icons.Trophy />
+                <div>
+                  <div className="text-green-400 font-bold text-sm uppercase tracking-wider mb-1">Recent Winner</div>
+                  <div className="font-mono text-sm break-all text-white/80">{recentWinner as string}</div>
+                </div>
+              </div>
             )}
 
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               {lotteryInfo.state === 1 && (
-                <>
-                  <Button
-                    variant="contained"
-                    size="large"
-                    onClick={() => setShowBuyDialog(true)}
-                    disabled={!isConnected || timeRemaining === 'Lottery Ended'}
-                    sx={{ flex: 1, minWidth: 200 }}
-                  >
-                    Buy Tickets
-                  </Button>
-                  {timeRemaining === 'Lottery Ended' && (
-                    <Button
-                      variant="outlined"
-                      size="large"
-                      onClick={() => endLottery?.()}
-                      disabled={isEnding}
-                      sx={{ flex: 1, minWidth: 200 }}
-                    >
-                      {isEnding ? 'Ending...' : 'End Lottery'}
-                    </Button>
-                  )}
-                </>
+                <button
+                  onClick={() => setShowBuyDialog(true)}
+                  disabled={!isConnected || timeRemaining === 'Lottery Ended'}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02]"
+                >
+                  Buy Tickets
+                </button>
               )}
 
-              <Button
-                variant="outlined"
-                size="large"
+              {timeRemaining === 'Lottery Ended' && lotteryInfo.state === 1 && (
+                <button
+                  onClick={() => endLottery?.()}
+                  disabled={isEnding}
+                  className="flex-1 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-bold py-4 px-8 rounded-xl transition-all"
+                >
+                  {isEnding ? 'Ending...' : 'End Lottery'}
+                </button>
+              )}
+
+              <button
                 onClick={() => withdrawWinnings?.()}
                 disabled={!isConnected || isWithdrawing}
-                sx={{ flex: 1, minWidth: 200 }}
+                className="flex-1 border border-white/10 hover:bg-white/5 text-white font-bold py-4 px-8 rounded-xl transition-all disabled:opacity-50"
               >
                 {isWithdrawing ? 'Withdrawing...' : 'Withdraw Winnings'}
-              </Button>
-            </Box>
-          </CardContent>
-        </Card>
+              </button>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
-      {/* Buy Tickets Dialog */}
-      <Dialog open={showBuyDialog} onClose={() => setShowBuyDialog(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Buy Lottery Tickets</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2 }}>
-            <TextField
-              label="Number of Tickets"
-              type="number"
-              value={ticketCount}
-              onChange={(e) => setTicketCount(e.target.value)}
-              fullWidth
-              inputProps={{ min: 1, max: 100 }}
-              sx={{ mb: 2 }}
+      {/* Buy Dialog Modal */}
+      <AnimatePresence>
+        {showBuyDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              onClick={() => setShowBuyDialog(false)}
             />
-            {lotteryInfo && (
-              <Alert severity="info">
-                Total Cost: {formatEther(lotteryInfo.ticketPrice * BigInt(ticketCount || '0'))} ETH
-              </Alert>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowBuyDialog(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={handleBuyTickets}
-            disabled={isBuying || isConfirming || !ticketCount || Number(ticketCount) < 1}
-          >
-            {isBuying || isConfirming ? 'Processing...' : 'Buy Tickets'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="glass-panel w-full max-w-md p-6 rounded-3xl relative z-10 border border-white/20 shadow-2xl"
+            >
+              <h3 className="text-2xl font-bold text-white mb-6">Buy Tickets</h3>
+
+              <div className="mb-6">
+                <label className="block text-gray-400 text-sm mb-2">Number of Tickets</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={ticketCount}
+                  onChange={(e) => setTicketCount(e.target.value)}
+                  className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white text-lg focus:outline-none focus:border-cyan-500 transition-colors"
+                />
+              </div>
+
+              {lotteryInfo && (
+                <div className="bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl mb-6">
+                  <div className="text-cyan-400 text-sm uppercase tracking-wider mb-1">Total Cost</div>
+                  <div className="text-xl font-bold text-white">
+                    {formatEther(lotteryInfo.ticketPrice * BigInt(ticketCount || '0'))} ETH
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowBuyDialog(false)}
+                  className="flex-1 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBuyTickets}
+                  disabled={isBuying || isConfirming || !ticketCount || Number(ticketCount) < 1}
+                  className="flex-1 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold transition-colors disabled:opacity-50"
+                >
+                  {isBuying || isConfirming ? 'Processing...' : 'Confirm Buy'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
