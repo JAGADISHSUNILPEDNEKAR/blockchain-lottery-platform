@@ -85,7 +85,25 @@ const BingoGame: React.FC = () => {
         args: [currentGameId || BigInt(0)],
         enabled: !!currentGameId,
         watch: true,
-    }) as { data: any, refetch: any };
+    }) as { data: any, refetch: any, isLoading: boolean };
+
+    const { isError: isGameError } = useContractRead({
+        address: BINGO_ADDRESS,
+        abi: BINGO_ABI,
+        functionName: 'getGameInfo',
+        args: [currentGameId || BigInt(0)],
+        enabled: !!currentGameId,
+        watch: true,
+    });
+
+    if (isGameError) {
+        return (
+            <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+                <Typography variant="h5" color="error">Error loading game data. Please check your network connection.</Typography>
+                <Button onClick={() => refetchGameInfo()}>Retry</Button>
+            </Container>
+        );
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: drawnNumbers, refetch: refetchDrawnNumbers } = useContractRead({

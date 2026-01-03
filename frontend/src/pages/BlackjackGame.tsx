@@ -73,15 +73,23 @@ const BlackjackGame: React.FC = () => {
     const [betAmount, setBetAmount] = useState<string>('0.01');
 
     // Read Game State
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: gameState, refetch: refetchGameState } = useContractRead({
+    const { data: gameState, refetch: refetchGameState, isError: isGameError } = useContractRead({
         address: BLACKJACK_ADDRESS,
         abi: BLACKJACK_ABI,
         functionName: 'getGameState',
         args: [address!],
         enabled: !!address,
         watch: true,
-    }) as { data: any, refetch: any };
+    }) as { data: any, refetch: any, isError: boolean };
+
+    if (isGameError) {
+        return (
+            <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
+                <Typography variant="h5" color="error">Error loading game data. Please check your network connection.</Typography>
+                <Button onClick={() => refetchGameState()}>Retry</Button>
+            </Container>
+        );
+    }
 
     // Contract Writes
     const { write: startGame, data: startGameData } = useContractWrite({
