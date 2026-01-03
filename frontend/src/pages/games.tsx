@@ -1,7 +1,9 @@
 import React from 'react';
 import { Container, Box, Typography, Grid, Paper, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 const GamesPage: React.FC = () => {
+    const navigate = useNavigate();
     return (
         <Container maxWidth="lg">
             <Box sx={{ py: 4 }}>
@@ -16,7 +18,7 @@ const GamesPage: React.FC = () => {
                             <Typography paragraph color="text.secondary">
                                 Play Blackjack against the smart contract dealer. Provably fair and transparent.
                             </Typography>
-                            <Button variant="outlined" disabled>Coming Soon</Button>
+                            <Button variant="contained" onClick={() => navigate('/games/blackjack')}>Play Blackjack</Button>
                         </Paper>
                     </Grid>
 
@@ -26,7 +28,7 @@ const GamesPage: React.FC = () => {
                             <Typography paragraph color="text.secondary">
                                 Multiplayer Bingo with automated number drawing.
                             </Typography>
-                            <Button variant="outlined" disabled>Coming Soon</Button>
+                            <Button variant="contained" onClick={() => navigate('/games/bingo')}>Play Bingo</Button>
                         </Paper>
                     </Grid>
                 </Grid>
