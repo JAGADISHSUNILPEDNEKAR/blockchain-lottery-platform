@@ -7,8 +7,7 @@ import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
 import { RainbowKitProvider, getDefaultWallets, connectorsForWallets, darkTheme } from '@rainbow-me/rainbowkit';
 import '@rainbow-me/rainbowkit/styles.css';
 import { Toaster } from 'react-hot-toast';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
+
 
 // Pages
 import HomePage from './pages/index';
@@ -53,101 +52,48 @@ const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
-// Create MUI theme
-const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#6366f1',
-    },
-    secondary: {
-      main: '#8b5cf6',
-    },
-    background: {
-      default: '#0f172a',
-      paper: '#1e293b',
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontSize: '3rem',
-      fontWeight: 700,
-    },
-    h2: {
-      fontSize: '2.5rem',
-      fontWeight: 600,
-    },
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          borderRadius: 8,
-          textTransform: 'none',
-          fontWeight: 600,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 16,
-          backdropFilter: 'blur(10px)',
-          background: 'rgba(30, 41, 59, 0.8)',
-        },
-      },
-    },
-  },
-});
+
 
 function App() {
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains} theme={darkTheme({
-        overlayBlur: 'small',
-      })}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Router>
-            <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-              <Navbar />
-              <main className="container mx-auto px-4 py-8">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/lottery" element={<LotteryPage />} />
-                  <Route path="/games" element={<GamesPage />} />
-                  <Route path="/games/blackjack" element={<BlackjackGame />} />
-                  <Route path="/games/bingo" element={<BingoGame />} />
-                </Routes>
-              </main>
-              <Toaster
-                position="bottom-right"
-                toastOptions={{
-                  duration: 5000,
-                  style: {
-                    background: '#1e293b',
-                    color: '#fff',
-                    borderRadius: '8px',
-                    border: '1px solid #334155',
-                  },
-                  success: {
-                    iconTheme: {
-                      primary: '#10b981',
-                      secondary: '#fff',
-                    },
-                  },
-                  error: {
-                    iconTheme: {
-                      primary: '#ef4444',
-                      secondary: '#fff',
-                    },
-                  },
-                }}
-              />
-            </div>
-          </Router>
-        </ThemeProvider>
+      <RainbowKitProvider
+        chains={chains}
+        theme={darkTheme({
+          accentColor: '#7c3aed', // violet-600
+          accentColorForeground: 'white',
+          borderRadius: 'large',
+          fontStack: 'system',
+          overlayBlur: 'small',
+        })}
+      >
+        <Router>
+          <div className="relative min-h-screen">
+            <Navbar />
+            <main className="container mx-auto px-4 py-8 relative z-10">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/lottery" element={<LotteryPage />} />
+                <Route path="/games" element={<GamesPage />} />
+                <Route path="/games/blackjack" element={<BlackjackGame />} />
+                <Route path="/games/bingo" element={<BingoGame />} />
+              </Routes>
+            </main>
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 5000,
+                style: {
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  backdropFilter: 'blur(12px)',
+                  color: '#fff',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px',
+                },
+              }}
+            />
+          </div>
+        </Router>
       </RainbowKitProvider>
     </WagmiConfig>
   );
